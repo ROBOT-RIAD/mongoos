@@ -2,6 +2,7 @@ import z from "zod";
 import { User } from "../models/user.model";
 import express,{Application , Request, Response} from "express";
 
+
 export const UserRouters = express.Router();
 
 
@@ -18,7 +19,16 @@ const CreateUserZodSchema = z.object({
 UserRouters.post('/user/create_user',async(req : Request , res : Response)=>{
     try{
         const body = await CreateUserZodSchema.parse(req.body);
+
+        const password = await User.hashPassword(body.password);
+        body.password = password
+       
         const user = await User.create(body);
+        // user.hash
+        // const user = new User(body)
+        // const password = await user.hashPassword(body.password)
+        // user.password = password
+        // await user.save()
         res.status(201).json(user);
 
     }catch(error){
@@ -42,6 +52,9 @@ UserRouters.patch('/user/:userId',async(req : Request , res : Response)=>{
     const user = await User.findByIdAndUpdate(userId,body,{new:true, });   
     res.send(user)
 })
+
+
+
 
 UserRouters.delete('/user/:userId',async(req : Request , res : Response)=>{
     const userId = req.params.userId;
